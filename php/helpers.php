@@ -56,6 +56,7 @@ function cal_track_payload(array $row): array
         'audioUrl' => $hasAudio ? (empty($row['audio_data']) ? $row['audio_url'] : cal_media_url($id, 'audio')) : null,
         'photoUrl' => $hasPhoto ? (empty($row['photo_data']) ? $row['photo_url'] : cal_media_url($id, 'photo')) : null,
         'photoMime' => $photoMime,
+        'lyrics' => $row['lyrics'] ?? '',
         'isLiveVideo' => strpos($photoMime, 'video/') === 0,
         'createdAt' => $row['created_at'],
     ];
