@@ -5,6 +5,10 @@ cal_cors();
 
 $method = $_SERVER['REQUEST_METHOD'];
 $db = cal_db();
+$col = $db->query("SHOW COLUMNS FROM tracks LIKE 'lyrics'");
+if ($col && $col->num_rows === 0) {
+    $db->query('ALTER TABLE tracks ADD COLUMN lyrics TEXT NULL');
+}
 
 function cal_save_upload(array $file, string $folder): ?array
 {
@@ -35,7 +39,7 @@ function cal_save_upload(array $file, string $folder): ?array
 
 if ($method === 'GET') {
     $result = $db->query(
-        'SELECT id, title, artist, audio_url, photo_url, photo_mime, created_at,
+        'SELECT id, title, artist, lyrics, audio_url, photo_url, photo_mime, created_at,
                 (audio_data IS NOT NULL AND LENGTH(audio_data) > 0) AS audio_data,
                 (photo_data IS NOT NULL AND LENGTH(photo_data) > 0) AS photo_data
          FROM tracks
@@ -67,6 +71,7 @@ if ($method === 'POST') {
     cal_require_admin();
     $title = trim($_POST['title'] ?? '');
     $artist = trim($_POST['artist'] ?? '');
+    $lyrics = trim($_POST['lyrics'] ?? '');
     if ($title === '' || $artist === '') {
         cal_json(['error' => 'Title and artist are required'], 400);
     }
@@ -86,10 +91,10 @@ if ($method === 'POST') {
     $photoMime = $photo['mime'] ?? null;
 
     $stmt = $db->prepare(
-        'INSERT INTO tracks (title, artist, audio_mime, audio_url, photo_mime, photo_url)
-         VALUES (?, ?, ?, ?, ?, ?)'
+        'INSERT INTO tracks (title, artist, lyrics, audio_mime, audio_url, photo_mime, photo_url)
+         VALUES (?, ?, ?, ?, ?, ?, ?)'
     );
-    $stmt->bind_param('ssssss', $title, $artist, $audioMime, $audioUrl, $photoMime, $photoUrl);
+    $stmt->bind_param('sssssss', $title, $artist, $lyrics, $audioMime, $audioUrl, $photoMime, $photoUrl);
     if (!$stmt->execute()) {
         cal_json(['error' => 'Could not save track: ' . $stmt->error], 500);
     }
@@ -103,6 +108,7 @@ if ($method === 'POST') {
             'audio_url' => $audioUrl,
             'photo_url' => $photoUrl,
             'photo_mime' => $photoMime,
+            'lyrics' => $lyrics,
             'created_at' => date('Y-m-d H:i:s'),
             'audio_data' => '',
             'photo_data' => '',
