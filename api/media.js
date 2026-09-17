@@ -1,4 +1,5 @@
-const { getPool, sendJson, handleCors } = require('../lib/db');
+const { getPool, sendJson, handleCors, mysqlEnabled } = require('../lib/db');
+const { DEMO_TRACKS } = require('../lib/demo-tracks');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,6 +15,19 @@ module.exports = async function handler(req, res) {
     const type = url.searchParams.get('type');
     if (!id || !['audio', 'photo'].includes(type)) {
       sendJson(res, 400, { error: 'Bad request' });
+      return;
+    }
+
+    if (!mysqlEnabled()) {
+      const demo = DEMO_TRACKS.find((track) => track.id === id);
+      const target = type === 'audio' ? demo?.audioUrl : demo?.photoUrl;
+      if (target) {
+        res.statusCode = 302;
+        res.setHeader('Location', target);
+        res.end();
+        return;
+      }
+      sendJson(res, 404, { error: 'Not found' });
       return;
     }
 
