@@ -315,6 +315,7 @@
       closeModal();
       await loadTracks();
     } catch (err) {
+      setStatus(err.message, true);
       alert(err.message);
     } finally {
       confirmModalBtn.disabled = false;
