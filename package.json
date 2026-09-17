@@ -1,0 +1,13 @@
+{
+  "name": "ctrl-alt-love",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Ctrl + Alt + Love — Spotify-style player with XAMPP MySQL and Vercel APIs",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "dependencies": {
+    "formidable": "^3.5.2",
+    "mysql2": "^3.11.5"
+  }
+}
