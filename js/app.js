@@ -233,6 +233,7 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Delete failed');
+      setStatus('');
       const wasCurrent = tracks[currentTrackIndex] && tracks[currentTrackIndex].id === id;
       tracks = tracks.filter((t) => t.id !== id);
       if (wasCurrent) {
