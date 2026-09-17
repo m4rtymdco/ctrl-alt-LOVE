@@ -4,5 +4,10 @@
     { "source": "/php/tracks.php", "destination": "/api/tracks" },
     { "source": "/php/media.php", "destination": "/api/media" },
     { "source": "/php/admin.php", "destination": "/api/admin" }
-  ]
+  ],
+  "functions": {
+    "api/tracks.js": {
+      "maxDuration": 60
+    }
+  }
 }
