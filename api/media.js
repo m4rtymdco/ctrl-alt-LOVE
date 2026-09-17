@@ -1,5 +1,6 @@
-const { getPool, sendJson, handleCors, mysqlEnabled } = require('../lib/db');
+const { getPool, sendJson, handleCors, mysqlEnabled, blobEnabled } = require('../lib/db');
 const { DEMO_TRACKS } = require('../lib/demo-tracks');
+const blobStore = require('../lib/blob-store');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,6 +12,26 @@ module.exports = async function handler(req, res) {
 
   try {
     const url = new URL(req.url, 'http://localhost');
+    const blobPath = url.searchParams.get('path');
+    if (blobPath) {
+      if (!blobEnabled()) {
+        sendJson(res, 404, { error: 'Not found' });
+        return;
+      }
+      const file = await blobStore.readPrivateFile(blobPath);
+      if (!file) {
+        sendJson(res, 404, { error: 'Not found' });
+        return;
+      }
+      res.statusCode = 200;
+      res.setHeader('Content-Type', file.contentType);
+      res.setHeader('Content-Length', file.buffer.length);
+      res.setHeader('Accept-Ranges', 'bytes');
+      res.setHeader('Cache-Control', 'private, max-age=3600');
+      res.end(file.buffer);
+      return;
+    }
+
     const id = Number(url.searchParams.get('id') || 0);
     const type = url.searchParams.get('type');
     if (!id || !['audio', 'photo'].includes(type)) {
