@@ -36,7 +36,7 @@ function fileValue(value) {
 async function listMysql() {
   const db = getPool();
   const [rows] = await db.query(
-    `SELECT id, title, artist, audio_url, photo_url, photo_mime, created_at,
+    `SELECT id, title, artist, lyrics, audio_url, photo_url, photo_mime, created_at,
             (audio_data IS NOT NULL AND LENGTH(audio_data) > 0) AS audio_data,
             (photo_data IS NOT NULL AND LENGTH(photo_data) > 0) AS photo_data
      FROM tracks
@@ -112,6 +112,7 @@ module.exports = async function handler(req, res) {
       const { fields, files } = await parseForm(req);
       const title = fieldValue(fields.title);
       const artist = fieldValue(fields.artist);
+      const lyrics = fieldValue(fields.lyrics);
       const audioFile = fileValue(files.audio);
       const photoFile = fileValue(files.photo);
 
@@ -136,8 +137,8 @@ module.exports = async function handler(req, res) {
       if (mysqlEnabled()) {
         const db = getPool();
         const [result] = await db.query(
-          'INSERT INTO tracks (title, artist, audio_mime, audio_data, photo_mime, photo_data, audio_url, photo_url) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL)',
-          [title, artist, audioMime, audioData, photoMime, photoData]
+          'INSERT INTO tracks (title, artist, lyrics, audio_mime, audio_data, photo_mime, photo_data, audio_url, photo_url) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL)',
+          [title, artist, lyrics || null, audioMime, audioData, photoMime, photoData]
         );
         sendJson(res, 201, {
           track: trackPayload({
@@ -147,6 +148,7 @@ module.exports = async function handler(req, res) {
             audio_url: null,
             photo_url: null,
             photo_mime: photoMime,
+            lyrics,
             created_at: new Date().toISOString(),
             audio_data: 1,
             photo_data: photoData ? 1 : 0,
@@ -159,6 +161,7 @@ module.exports = async function handler(req, res) {
         const track = await blobStore.addTrack({
           title,
           artist,
+          lyrics,
           audioBuffer: audioData,
           audioMime,
           photoBuffer: photoData,
