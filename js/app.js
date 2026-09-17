@@ -314,6 +314,12 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not add track');
       closeModal();
+      if (data.track) {
+        tracks = [data.track, ...tracks.filter((item) => item.id !== data.track.id && !item.isDemo)];
+        currentTrackIndex = 0;
+        renderTrackList();
+        selectTrack(0, false);
+      }
       await loadTracks();
     } catch (err) {
       setStatus(err.message, true);
